@@ -1,1 +1,125 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
+
+
+plt.rcParams.update({'font.size':13})
+plt.rcParams['axes.labelweight'] = 'bold'
+plt.rcParams.update({'font.weight':'bold'})
+plt.rcParams["font.family"] = "Times New Roman"
+rc = {"font.family" : "serif", 
+      "mathtext.fontset" : "stix"}
+plt.rcParams.update(rc)
+plt.rcParams["font.serif"] = ["Times New Roman"] + plt.rcParams["font.serif"]
+
+
+
+mu_n=450             # in cm^2/V.s
+mu_n=mu_n*1e-4       # in m^2/V.s
+
+Cox=8.6              # in fF/um^2
+Cox=Cox*1e-15*1e12   # in F/m^2
+
+kn=(mu_n*Cox)
+
+
+W=2e-6              # in m
+L=0.18e-6           # in m
+
+vgs=np.linspace(0,2,101)
+vds=np.linspace(0,2.5,201)
+Vt=0.5
+
+VGS,VDS=np.meshgrid(vgs,vds)
+
+[r,c]=VGS.shape
+
+ID=np.zeros((r,c))
+
+for ivgs in range(len(vgs)):
+	for jvds in range(len(vds)):
+		if vgs[ivgs]<=Vt:
+			ID[jvds,ivgs]=0
+		else:
+			if vds[jvds]<=(vgs[ivgs]-Vt):
+				ID[jvds,ivgs]=kn*(W/L)*(((vgs[ivgs]-Vt)*vds[jvds])-0.5*(vds[jvds])**2)
+			else:
+				ID[jvds,ivgs]=0.5*kn*(W/L)*((vgs[ivgs]-Vt)**2)
+
+
+ID=ID*1e3
+
+my_cmap = plt.get_cmap('bwr')
+
+plt.figure(figsize=(8,5))
+plt.pcolormesh(VDS,VGS,ID,cmap=my_cmap,shading='gouraud')
+plt.colorbar(label=r"$I_D(mA)$")
+plt.clim((np.min(ID), np.max(ID)))
+plt.xlabel(r"$V_{DS}$")
+plt.ylabel(r"$V_{GS}$")
+plt.title('Vt = ' + str(Vt) + ' V')
+
+
+
+
+plt.rcParams.update({'font.size':14})
+x=VDS
+y=VGS
+z=ID
+# Creating figure
+fig = plt.figure(figsize =(14, 12))
+ax = plt.axes(projection ='3d')
+ 
+ 
+# Creating plot
+surf = ax.plot_surface(x, y, z, 
+                       rstride = 8,
+                       cstride = 8,
+                       alpha = 0.8,
+                       cmap = my_cmap)
+
+
+cset = ax.contourf(x, y, z,
+                   zdir ='z',
+                   offset = np.min(z),
+                   cmap = my_cmap)
+
+cset = ax.contourf(x, y, z, 
+                   zdir ='y',
+                   offset = 5,
+                   cmap = my_cmap)
+
+cset = ax.plot(vgs,ID[-1,:],-1*np.ones(len(vgs)), 'k', linewidth=3.0, zdir = 'x')
+
+
+
+
+# comment 
+
+fig.colorbar(surf, ax = ax, 
+             shrink = 0.5,
+             aspect = 5)
+ 
+# Adding labels
+ax.set_xlim(-1, 5)
+ax.set_ylim(-3, 5)
+ax.set_zlim(np.min(z), np.max(z))
+
+plt.rcParams.update({'font.size':24})
+ax.set_xlabel(r"$V_{DS}$")
+
+ax.set_ylabel(r"$V_{GS}$")
+
+ax.set_zlabel(r"$I_{D}$")
+
+#ax.set_title('3D surface and 2D contour plot projections')
+ax.set_title(r"$I_D\left( V_{DS},V_{GS}\right)~\mathrm{3D~surface~plot}$", fontsize=18)
+ 
+
+
+
+
+
+
+plt.show()
 
